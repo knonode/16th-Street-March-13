@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "3D visualization of Black Lives Matter Plaza in Washington DC",
+  "description": "3D generative poem about immutability or words and ideas",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -16,6 +16,6 @@
     "vite": "^5.1.4"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.x"
   }
 } 
