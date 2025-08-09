@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/**": {
+      "runtime": "nodejs22.x"
+    }
+  },
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": "dist"
+}
