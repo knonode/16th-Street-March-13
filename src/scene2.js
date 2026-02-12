@@ -261,16 +261,16 @@ export class Scene2 {
                 const xOffset = (w - (windowsPerFloor - 1) / 2) * 18;
                 const yOffset = -height / 2 + 15 + floor * 20;
 
-                // Windows on both sides of the building
-                [-1, 1].forEach(zDir => {
-                    const windowMesh = new THREE.Mesh(
-                        new THREE.PlaneGeometry(6, 8),
-                        windowMat
-                    );
-                    windowMesh.position.set(xOffset, yOffset, zDir * (depth / 2 + 0.1));
-                    if (zDir === -1) windowMesh.rotation.y = Math.PI;
-                    building.add(windowMesh);
-                });
+                // Place windows on the street-facing side
+                const zDir = position.z < 0 ? 1 : -1;
+                const windowMesh = new THREE.Mesh(
+                    new THREE.PlaneGeometry(6, 8),
+                    windowMat
+                );
+                windowMesh.position.set(xOffset, yOffset, zDir * (depth / 2 + 0.1));
+                // Rotate so the face is visible from the street
+                if (zDir === -1) windowMesh.rotation.y = Math.PI;
+                building.add(windowMesh);
             }
         }
 
@@ -1132,7 +1132,7 @@ export class Scene2 {
                 data.particleTimer = 0;
 
                 const particle = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.9 + Math.random() * 1.5, 4, 4),
+                    new THREE.SphereGeometry(0.3 + Math.random() * 0.5, 4, 4),
                     new THREE.MeshStandardMaterial({
                         color: Math.random() > 0.5 ? 0xff4400 : 0xff8800,
                         emissive: 0xff2200,
@@ -1142,18 +1142,18 @@ export class Scene2 {
                     })
                 );
                 particle.position.set(
-                    (Math.random() - 0.5) * 9,
-                    6 + Math.random() * 6,
-                    (Math.random() - 0.5) * 9
+                    (Math.random() - 0.5) * 3,
+                    2 + Math.random() * 2,
+                    (Math.random() - 0.5) * 3
                 );
                 particle.userData = {
                     velocity: new THREE.Vector3(
-                        (Math.random() - 0.5) * 1.5,
-                        4 + Math.random() * 4,
-                        (Math.random() - 0.5) * 1.5
+                        (Math.random() - 0.5) * 0.5,
+                        2 + Math.random() * 2,
+                        (Math.random() - 0.5) * 0.5
                     ),
                     life: 0,
-                    maxLife: 0.7 + Math.random() * 1.0
+                    maxLife: 0.5 + Math.random() * 0.8
                 };
                 bonfire.add(particle);
                 data.fireParticles.push(particle);
