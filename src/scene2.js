@@ -168,32 +168,17 @@ export class Scene2 {
         ctx.fillStyle = '#f5f0e8';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Black text
-        ctx.fillStyle = '#111111';
-        ctx.font = 'bold 11px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        // Word wrap the text
-        const words = text.split(' ');
-        let lines = [];
-        let currentLine = '';
-        words.forEach(word => {
-            const testLine = currentLine ? currentLine + ' ' + word : word;
-            if (ctx.measureText(testLine).width > canvas.width - 10) {
-                lines.push(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
-        });
-        if (currentLine) lines.push(currentLine);
-
-        const lineHeight = 14;
-        const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
-        lines.forEach((line, i) => {
-            ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
-        });
+        // Abstract soot dots instead of readable text
+        const dotCount = 20 + Math.floor(Math.random() * 30);
+        for (let d = 0; d < dotCount; d++) {
+            const opacity = 0.15 + Math.random() * 0.5;
+            ctx.fillStyle = `rgba(17, 17, 17, ${opacity})`;
+            const dotX = 10 + Math.random() * (canvas.width - 20);
+            const dotY = 8 + Math.random() * (canvas.height - 16);
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 0.5 + Math.random() * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         const texture = new THREE.CanvasTexture(canvas);
         return texture;
@@ -229,14 +214,14 @@ export class Scene2 {
 
         paper.userData = {
             velocity: velocity || new THREE.Vector3(
-                (Math.random() - 0.5) * 2,
-                -1 - Math.random() * 0.5,
-                (Math.random() - 0.5) * 2
+                (Math.random() - 0.5) * 1,
+                -0.3 - Math.random() * 0.2,
+                (Math.random() - 0.5) * 1
             ),
             rotationSpeed: new THREE.Vector3(
-                (Math.random() - 0.5) * 3,
-                (Math.random() - 0.5) * 3,
-                (Math.random() - 0.5) * 3
+                (Math.random() - 0.5) * 1.5,
+                (Math.random() - 0.5) * 1.5,
+                (Math.random() - 0.5) * 1.5
             ),
             state: 'falling', // falling, onGround, carried, burning
             groundTime: 0,
@@ -273,16 +258,19 @@ export class Scene2 {
 
         for (let floor = 0; floor < floors; floor++) {
             for (let w = 0; w < windowsPerFloor; w++) {
-                const windowMesh = new THREE.Mesh(
-                    new THREE.PlaneGeometry(6, 8),
-                    windowMat
-                );
                 const xOffset = (w - (windowsPerFloor - 1) / 2) * 18;
                 const yOffset = -height / 2 + 15 + floor * 20;
-                // Place on the street-facing side
-                const zDir = position.z < 0 ? 1 : -1;
-                windowMesh.position.set(xOffset, yOffset, zDir * (depth / 2 + 0.1));
-                building.add(windowMesh);
+
+                // Windows on both sides of the building
+                [-1, 1].forEach(zDir => {
+                    const windowMesh = new THREE.Mesh(
+                        new THREE.PlaneGeometry(6, 8),
+                        windowMat
+                    );
+                    windowMesh.position.set(xOffset, yOffset, zDir * (depth / 2 + 0.1));
+                    if (zDir === -1) windowMesh.rotation.y = Math.PI;
+                    building.add(windowMesh);
+                });
             }
         }
 
@@ -301,21 +289,21 @@ export class Scene2 {
         const group = new THREE.Group();
         group.position.copy(position);
 
-        // Fire base (logs)
+        // Fire base (logs) — 3x bigger
         for (let i = 0; i < 4; i++) {
             const log = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.8, 1, 8, 6),
+                new THREE.CylinderGeometry(2.4, 3, 24, 6),
                 new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.9 })
             );
             log.rotation.z = Math.PI / 2;
             log.rotation.y = (i / 4) * Math.PI;
-            log.position.y = 1.5;
+            log.position.y = 4.5;
             group.add(log);
         }
 
-        // Glowing embers at base
+        // Glowing embers at base — 3x bigger
         const embers = new THREE.Mesh(
-            new THREE.SphereGeometry(3, 8, 8),
+            new THREE.SphereGeometry(9, 8, 8),
             new THREE.MeshStandardMaterial({
                 color: 0xff4400,
                 emissive: 0xff2200,
@@ -325,12 +313,12 @@ export class Scene2 {
                 opacity: 0.7
             })
         );
-        embers.position.y = 2;
+        embers.position.y = 6;
         group.add(embers);
 
-        // Point light for fire glow
-        const fireLight = new THREE.PointLight(0xff6600, 2, 60);
-        fireLight.position.y = 6;
+        // Point light for fire glow — 3x range and intensity
+        const fireLight = new THREE.PointLight(0xff6600, 6, 180);
+        fireLight.position.y = 18;
         group.add(fireLight);
 
         group.userData = {
@@ -414,7 +402,7 @@ export class Scene2 {
         // Place rooftop papers on each building
         buildingConfigs.forEach((config, i) => {
             const roofY = config.height + 0.5;
-            const numPapers = 3 + Math.floor(Math.random() * 3);
+            const numPapers = 8 + Math.floor(Math.random() * 5);
             for (let p = 0; p < numPapers; p++) {
                 const texture = this.createBlankPaperTexture();
                 const paperGeo = new THREE.PlaneGeometry(8, 5);
@@ -551,9 +539,9 @@ export class Scene2 {
         );
 
         const vel = new THREE.Vector3(
-            (Math.random() - 0.5) * 1.5,
-            0.5 + Math.random() * 0.5,
-            zDir * (1 + Math.random() * 1.5)
+            (Math.random() - 0.5) * 0.8,
+            0.2 + Math.random() * 0.3,
+            zDir * (0.5 + Math.random() * 0.8)
         );
 
         const text = TEXTS[Math.floor(Math.random() * TEXTS.length)];
@@ -797,15 +785,17 @@ export class Scene2 {
 
             switch (data.state) {
                 case 'falling': {
-                    // Apply gravity and wind
-                    data.velocity.y -= 2.0 * deltaTime;
+                    // Gentle gravity — papers drift down slowly
+                    data.velocity.y -= 0.5 * deltaTime;
+                    // Clamp terminal velocity so papers float
+                    data.velocity.y = Math.max(data.velocity.y, -1.2);
                     // Air resistance to make paper flutter
-                    data.velocity.x += (Math.random() - 0.5) * 2 * deltaTime;
-                    data.velocity.z += (Math.random() - 0.5) * 2 * deltaTime;
+                    data.velocity.x += (Math.random() - 0.5) * 1.5 * deltaTime;
+                    data.velocity.z += (Math.random() - 0.5) * 1.5 * deltaTime;
 
-                    paper.position.x += data.velocity.x;
-                    paper.position.y += data.velocity.y;
-                    paper.position.z += data.velocity.z;
+                    paper.position.x += data.velocity.x * 0.5;
+                    paper.position.y += data.velocity.y * 0.5;
+                    paper.position.z += data.velocity.z * 0.5;
 
                     // Tumbling rotation
                     paper.rotation.x += data.rotationSpeed.x * deltaTime;
@@ -966,7 +956,7 @@ export class Scene2 {
         const paper = candidates[Math.floor(Math.random() * candidates.length)];
         paper.userData.sootAccumulated += 0.15;
 
-        // Update paper texture to show emerging text
+        // Update paper texture with abstract soot dots
         const progress = Math.min(1, paper.userData.sootAccumulated / paper.userData.sootThreshold);
         const ctx = paper.material.map._ctx;
         const canvas = paper.material.map._canvas;
@@ -975,47 +965,21 @@ export class Scene2 {
         ctx.fillStyle = '#f5f0e8';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw text with opacity based on soot progress
-        const text = TEXTS[paper.userData.textIndex];
-        ctx.fillStyle = `rgba(17, 17, 17, ${progress})`;
-        ctx.font = 'bold 11px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        const words = text.split(' ');
-        let lines = [];
-        let currentLine = '';
-        words.forEach(word => {
-            const testLine = currentLine ? currentLine + ' ' + word : word;
-            if (ctx.measureText(testLine).width > canvas.width - 10) {
-                lines.push(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
-        });
-        if (currentLine) lines.push(currentLine);
-
-        const lineHeight = 14;
-        const startY = canvas.height / 2 - (lines.length - 1) * lineHeight / 2;
-        lines.forEach((line, i) => {
-            ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
-        });
-
-        // Add some scattered soot dots for effect
-        const dotCount = Math.floor(progress * 40);
-        ctx.fillStyle = 'rgba(30, 30, 30, 0.3)';
+        // Scatter soot dots based on accumulation progress
+        const dotCount = Math.floor(progress * 60);
         for (let d = 0; d < dotCount; d++) {
-            const dotX = Math.random() * canvas.width;
-            const dotY = Math.random() * canvas.height;
+            const opacity = 0.1 + Math.random() * 0.5 * progress;
+            ctx.fillStyle = `rgba(20, 20, 20, ${opacity})`;
+            const dotX = 6 + Math.random() * (canvas.width - 12);
+            const dotY = 4 + Math.random() * (canvas.height - 8);
             ctx.beginPath();
-            ctx.arc(dotX, dotY, 0.5 + Math.random(), 0, Math.PI * 2);
+            ctx.arc(dotX, dotY, 0.4 + Math.random() * 1.8, 0, Math.PI * 2);
             ctx.fill();
         }
 
         paper.material.map.needsUpdate = true;
 
-        // If paper is full of text, mark as ready for collection
+        // If paper is full of soot, mark as ready for collection
         if (paper.userData.sootAccumulated >= paper.userData.sootThreshold) {
             paper.userData.readyForCollection = true;
         }
@@ -1160,7 +1124,7 @@ export class Scene2 {
             // Flicker the fire light
             const light = bonfire.children.find(c => c instanceof THREE.PointLight);
             if (light) {
-                light.intensity = 1.5 + Math.sin(data.particleTimer * 10) * 0.5 + Math.random() * 0.3;
+                light.intensity = 4.5 + Math.sin(data.particleTimer * 10) * 1.5 + Math.random() * 0.9;
             }
 
             // Spawn fire particles
@@ -1168,7 +1132,7 @@ export class Scene2 {
                 data.particleTimer = 0;
 
                 const particle = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.3 + Math.random() * 0.5, 4, 4),
+                    new THREE.SphereGeometry(0.9 + Math.random() * 1.5, 4, 4),
                     new THREE.MeshStandardMaterial({
                         color: Math.random() > 0.5 ? 0xff4400 : 0xff8800,
                         emissive: 0xff2200,
@@ -1178,18 +1142,18 @@ export class Scene2 {
                     })
                 );
                 particle.position.set(
-                    (Math.random() - 0.5) * 3,
-                    2 + Math.random() * 2,
-                    (Math.random() - 0.5) * 3
+                    (Math.random() - 0.5) * 9,
+                    6 + Math.random() * 6,
+                    (Math.random() - 0.5) * 9
                 );
                 particle.userData = {
                     velocity: new THREE.Vector3(
-                        (Math.random() - 0.5) * 0.5,
-                        2 + Math.random() * 2,
-                        (Math.random() - 0.5) * 0.5
+                        (Math.random() - 0.5) * 1.5,
+                        4 + Math.random() * 4,
+                        (Math.random() - 0.5) * 1.5
                     ),
                     life: 0,
-                    maxLife: 0.5 + Math.random() * 0.8
+                    maxLife: 0.7 + Math.random() * 1.0
                 };
                 bonfire.add(particle);
                 data.fireParticles.push(particle);
