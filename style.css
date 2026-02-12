@@ -18,6 +18,58 @@ canvas {
     height: 100%;
 }
 
+/* Tab menu */
+#tab-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    z-index: 200;
+    pointer-events: none;
+}
+
+.tab-btn {
+    pointer-events: all;
+    background: rgba(0, 0, 0, 0.5);
+    color: #888;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 24px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.tab-btn:hover {
+    color: #ccc;
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.tab-btn.active {
+    color: #fff;
+    border-bottom-color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Scene overlay (address/date) */
+#scene-overlay {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-family: Arial, sans-serif;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 100;
+}
+
 #info {
     position: fixed;
     top: 20px;
@@ -36,4 +88,4 @@ h1 {
 
 p {
     font-size: 16px;
-} 
+}
